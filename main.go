@@ -1,10 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+
+	// "log"
 	"net/http"
+	// "net/http/httputil"
 	"strconv"
 )
+
+const PORT = ":3000"
 
 /**
 * After all said and done more is actual said than done
@@ -20,8 +26,62 @@ var BALANCE = map[string]interface{}{
 	"chidi":  4000,
 }
 
+// This is going into the stack overflow post
+// create struct.
+// I use struct because it makes me understand the nature of the data I am expecting better
+type json_data struct {
+	// This should contain the expected JSON data
+	// <key> <data type>
+	name string
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	// This is a test function that is used in making sure that we now how to get a post request
+	// after we might also use the mux thing here if we want to
+
+	// Supposed to handle the case of wrong url
+	fmt.Println("This tt route has actually started")
+
+	switch r.Method {
+	case "GET":
+		http.ServeFile(w, r, "form.html")
+	case "POST":
+
+		// reqDump, err := httputil.DumpRequest(r, true)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+
+		// fmt.Printf("REQUEST:\n%s", string(reqDump))
+		// w.Write([]byte("Hello World"))
+		decoder := json.NewDecoder(r.Body)
+		var data json_data
+		error := decoder.Decode(&data)
+		if error != nil {
+			// handle the error in case the data is not decoded properly
+			fmt.Println("Error occured while decoding the data: ", error)
+			return
+		}
+		fmt.Println(data.name)
+		fmt.Printf("REQUEST:\n%s", data)
+
+		// err := r.ParseForm()
+
+		// if err != nil {
+		// 	fmt.Fprintf(w, "there was an error trying to get the body of this request %v", err)
+		// 	return
+		// }
+
+		// name := r.FormValue("name")
+		// age := r.FormValue("age")
+		// fmt.Println("The values in the form is: ", name, " and ", age)
+
+	}
+}
+
 func transfer(w http.ResponseWriter, r *http.Request) {
 	// This is to make transfers inbetween users and the should still be in
+	// TODO: We have to make something makes sure that this transfer function sets the right balance for each map
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")
 	amount, err := strconv.Atoi(r.URL.Query().Get("amount"))
@@ -31,7 +91,7 @@ func transfer(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// handle the error that is going to happen here incase we can't convert to interger
 		fmt.Println(err)
-		// should be able to end the function here.
+		return
 	}
 
 	if amount > user_balance {
@@ -41,9 +101,11 @@ func transfer(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(BALANCE[to])
 	fmt.Println(user_balance)
 	fmt.Println(amount)
+	BALANCE[from] = user_balance - amount
 	BALANCE[to] = amount + current_reciever_balance
 
 	fmt.Print("User balance for ", to, " is: \t", BALANCE[to])
+	// this should be able to return a JSON
 }
 
 // this is the function that would be making a post request to this application
@@ -65,10 +127,6 @@ func getUserBalance(w http.ResponseWriter, r *http.Request) {
 func main() {
 	fmt.Println("Go has started from here now")
 
-	// Balance := balance {
-	// 	Name: ,
-	// }
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Welcome to my website!")
 	})
@@ -76,9 +134,10 @@ func main() {
 	http.HandleFunc("/balance", getUserBalance)
 	http.HandleFunc("/user", createUser)
 	http.HandleFunc("/transfer", transfer)
+	http.HandleFunc("/tt", handler)
 
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(PORT, nil)
 }
