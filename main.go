@@ -1,12 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-
-	// "log"
 	"net/http"
-	// "net/http/httputil"
+
 	"strconv"
 )
 
@@ -33,50 +30,6 @@ type json_data struct {
 	// This should contain the expected JSON data
 	// <key> <data type>
 	name string
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	// This is a test function that is used in making sure that we now how to get a post request
-	// after we might also use the mux thing here if we want to
-
-	// Supposed to handle the case of wrong url
-	fmt.Println("This tt route has actually started")
-
-	switch r.Method {
-	case "GET":
-		http.ServeFile(w, r, "form.html")
-	case "POST":
-
-		// reqDump, err := httputil.DumpRequest(r, true)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-
-		// fmt.Printf("REQUEST:\n%s", string(reqDump))
-		// w.Write([]byte("Hello World"))
-		decoder := json.NewDecoder(r.Body)
-		var data json_data
-		error := decoder.Decode(&data)
-		if error != nil {
-			// handle the error in case the data is not decoded properly
-			fmt.Println("Error occured while decoding the data: ", error)
-			return
-		}
-		fmt.Println(data.name)
-		fmt.Printf("REQUEST:\n%s", data)
-
-		// err := r.ParseForm()
-
-		// if err != nil {
-		// 	fmt.Fprintf(w, "there was an error trying to get the body of this request %v", err)
-		// 	return
-		// }
-
-		// name := r.FormValue("name")
-		// age := r.FormValue("age")
-		// fmt.Println("The values in the form is: ", name, " and ", age)
-
-	}
 }
 
 func transfer(w http.ResponseWriter, r *http.Request) {
@@ -134,10 +87,59 @@ func main() {
 	http.HandleFunc("/balance", getUserBalance)
 	http.HandleFunc("/user", createUser)
 	http.HandleFunc("/transfer", transfer)
-	http.HandleFunc("/tt", handler)
+	// http.HandleFunc("/tt", handler)
 
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.ListenAndServe(PORT, nil)
 }
+
+// func handler(w http.ResponseWriter, r *http.Request) {
+// 	// This is a test function that is used in making sure that we now how to get a post request
+// 	// after we might also use the mux thing here if we want to
+
+// 	// Supposed to handle the case of wrong url
+// 	fmt.Println("This tt route has actually started")
+
+// 	switch r.Method {
+// 	case "GET":
+// 		http.ServeFile(w, r, "form.html")
+// 	case "POST":
+
+// 		reqDump, err := httputil.DumpRequest(r, true)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+
+// 		fmt.Printf("REQUEST:\n%s", string(reqDump))
+// 		// w.Write([]byte("Hello World"))
+// 		r.ParseForm()
+// 		name := r.Form.Get("name")
+// 		age := r.Form.Get("age")
+// 		// decoder := json.NewDecoder(r.Body)
+// 		// var data json_data
+// 		// error := decoder.Decode(&data)
+// 		// if error != nil {
+// 		// 	// handle the error in case the data is not decoded properly
+// 		// 	fmt.Println("Error occured while decoding the data: ", error)
+// 		// 	return
+// 		// }
+// 		// fmt.Println(data.name)
+// 		// fmt.Printf("REQUEST:\n%s", data)
+// 		fmt.Println("name and age: ", name, " ", age)
+// 		fmt.Println("Form Request: \n%v", json.Marshal(r.Form))
+
+// 		// err := r.ParseForm()
+
+// 		// if err != nil {
+// 		// 	fmt.Fprintf(w, "there was an error trying to get the body of this request %v", err)
+// 		// 	return
+// 		// }
+
+// 		// name := r.FormValue("name")
+// 		// age := r.FormValue("age")
+// 		// fmt.Println("The values in the form is: ", name, " and ", age)
+
+// 	}
+// }
