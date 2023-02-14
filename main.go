@@ -1,10 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"strconv"
+	// this is for
 )
 
 const PORT = ":3000"
@@ -23,29 +24,35 @@ var BALANCE = map[string]interface{}{
 	"chidi":  4000,
 }
 
-// This is going into the stack overflow post
-// create struct.
-// I use struct because it makes me understand the nature of the data I am expecting better
-type json_data struct {
-	// This should contain the expected JSON data
-	// <key> <data type>
-	name string
+type TransferPayload struct {
+	From   string `json: "from"`
+	To     string `json: "to"`
+	Amount string `json: "amount"`
 }
 
 func transfer(w http.ResponseWriter, r *http.Request) {
-	// This is to make transfers inbetween users and the should still be in
-	// TODO: We have to make something makes sure that this transfer function sets the right balance for each map
-	from := r.URL.Query().Get("from")
-	to := r.URL.Query().Get("to")
-	amount, err := strconv.Atoi(r.URL.Query().Get("amount"))
-	var user_balance int
-	user_balance = BALANCE[from].(int)
+	// of course you should handle the exception if the request method is not the POSt method
+	decoder := json.NewDecoder(r.Body)
+	var transferPayLoad TransferPayload
+	error := decoder.Decode(&transferPayLoad)
+
+	if error != nil {
+		fmt.Println("Error decoding the data in the Json payload: \t", error)
+	}
+	fmt.Println(transferPayLoad)
+	from := transferPayLoad.From
+	to := transferPayLoad.To
+
+	user_balance := BALANCE[from].(int)
 	current_reciever_balance := BALANCE[to].(int)
+	amount, err := strconv.Atoi(transferPayLoad.Amount)
 	if err != nil {
 		// handle the error that is going to happen here incase we can't convert to interger
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("amount: \t", amount, "to: \t", to, "user_balance: \t", user_balance)
+	fmt.Println("Current user balance: \t", current_reciever_balance)
 
 	if amount > user_balance {
 		fmt.Println("User do not have a sufficient balance to make this trade")
@@ -87,7 +94,6 @@ func main() {
 	http.HandleFunc("/balance", getUserBalance)
 	http.HandleFunc("/user", createUser)
 	http.HandleFunc("/transfer", transfer)
-	// http.HandleFunc("/tt", handler)
 
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
