@@ -14,20 +14,15 @@ const PORT = ":3000"
 * After all said and done more is actual said than done
  */
 
-//  type balance struct {
-// 	Name string
-// 	amount float32
-//  }
-
 var BALANCE = map[string]interface{}{
 	"marcel": 100000,
 	"chidi":  4000,
 }
 
 type TransferPayload struct {
-	From   string `json: "from"`
-	To     string `json: "to"`
-	Amount string `json: "amount"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount string `json:"amount"`
 }
 
 func transfer(w http.ResponseWriter, r *http.Request) {
@@ -51,9 +46,6 @@ func transfer(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("amount: \t", amount, "to: \t", to, "user_balance: \t", user_balance)
-	fmt.Println("Current user balance: \t", current_reciever_balance)
-
 	if amount > user_balance {
 		fmt.Println("User do not have a sufficient balance to make this trade")
 		// should be also be able to end the function here
